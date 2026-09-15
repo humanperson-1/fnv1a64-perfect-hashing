@@ -9,6 +9,7 @@
 #include    <stddef.h>
 
 /*-CONSTANTS----------------------------------------------------------------------------------------------------------*/
+
 #ifndef CACHE_LINE_SIZE
 #define CACHE_LINE_SIZE                         128
 #endif  /* CACHE_LINE_SIZE */
