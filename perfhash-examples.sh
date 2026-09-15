@@ -38,10 +38,10 @@ while getopts ":dpnc:l:h" opt ; do
             cache_line="$OPTARG";
             ;;
         h)
-            printf "%b\n" "-d for debugging"
-            printf "%b\n" "-p to profile"
-            printf "%b\n" "-n to disable multithreading"
-            printf "%b\n" "-c [compiler] to specify a c compiler"
+            printf "%b\n" "-d for debugging";
+            printf "%b\n" "-p to profile";
+            printf "%b\n" "-n to disable multithreading";
+            printf "%b\n" "-c [compiler] to specify a c compiler";
             printf "%b\n" "-l [line size] to specify cache line size";
             exit 0;
             ;;
@@ -81,7 +81,7 @@ if (( profile )) ; then
     flags+=(
         -g
         -fno-omit-frame-pointer
-    )
+    );
 fi
 
 # threading toggle
