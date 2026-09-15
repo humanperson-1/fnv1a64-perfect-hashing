@@ -25,8 +25,9 @@
     memcpy(itm_c, itm, sizeof(hash_itm));
 
     // copy string
-    char        *const  str_c   =   s_malloc((strlen(itm->str) + 1) * sizeof(char));
-    strcpy(str_c, itm->str);
+    const   size_t      str_s   =   strlen(itm->str) + 1;
+    char        *const  str_c   =   s_malloc(str_s * sizeof(char));
+    memcpy(str_c, itm->str, str_s);
     itm_c->str                  =   str_c;
 
     return  itm_c;

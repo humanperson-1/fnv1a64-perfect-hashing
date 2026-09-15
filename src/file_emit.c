@@ -27,8 +27,9 @@
  * @return                      upper-cased string
  */
 [[nodiscard]] static char *to_upper_str_(const char *const str) {               // full string to upper
-    char    *const  res     =   s_malloc(strlen(str) + 1);
-    strcpy(res, str);
+    const   size_t  res_s   =   strlen(str) + 1;
+    char    *const  res     =   s_malloc(res_s * sizeof(char));
+    memcpy(res, str, res_s);
     char           *ptr     =   res;
     for (; *ptr != '\0'; ++ptr)     if ('a' <= *ptr && *ptr <= 'z')     *ptr    +=  'A' - 'a';
     return  res;
