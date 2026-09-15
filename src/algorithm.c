@@ -421,6 +421,7 @@ static hash_fn alg_orch_( const hash_grp *const group,
     for (unsigned i = 1; i < thrd_n; ++i) {
         if (live[i])                            pthread_join(threads[i], nullptr);
     }
+    free(live);
 
     // end
     free_str_map_(&map);
