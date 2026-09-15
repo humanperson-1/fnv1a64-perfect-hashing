@@ -3,12 +3,12 @@
  * Perfect hashing algorithm implementation.
  */
 
-#include <_stdio.h>
 #include    <stddef.h>
 #include    <stdlib.h>
 #include    <stdio.h>
 #include    <stdint.h>
 #include    <inttypes.h>
+#include    <string.h>
 #include    <limits.h>
 #include    <math.h>
 #ifndef NTHREAD
@@ -83,18 +83,6 @@ static void free_str_map_(str_map *const map) {                                 
 /*-BITSET-FUNCTIONS---------------------------------------------------------------------------------------------------*/
 
 /**
- * New bitset creation.
- *
- * @param       n               number of bits in the bitset
- * @return                      bitset
- */
-[[nodiscard]] static bitset new_bitset_(const size_t n) {                       // create bitset
-    size_t  masks   =   0;
-    for (int i = (int)n; i > 0; i -= 64, ++masks);
-    return  (bitset){ .mask=s_calloc(masks, sizeof(uint64_t)), .size=masks };
-}
-
-/**
  * Bitset bit set.
  *
  * @param       set             bitset
@@ -112,15 +100,27 @@ static void free_str_map_(str_map *const map) {                                 
 }
 
 /**
- * Bitset clear. `memset` is slower than the manual loop.
+ * Bitset clear.
  *
  * @param       set             bitset
  */
 static void clear_bitset_(bitset *const restrict set) {   // clear bitset
-    // memset(set->mask, 0, sizeof(uint64_t) * set->size);
-    for (size_t i = 0; i < set->size; ++i)      set->mask[i]  =   0;
+    memset(set->mask, 0, sizeof(uint64_t) * set->size);
 }
 
+/**
+ * New bitset creation (aligned).
+ *
+ * @param       n               number of bits in the bitset
+ * @return                      bitset
+ */
+[[nodiscard]] static bitset new_bitset_(const size_t n) {                       // create bitset
+    size_t  masks   =   0;
+    for (int i = (int)n; i > 0; i -= 64, ++masks);
+    bitset  bset    =   (bitset){ .mask=s_aln_alloc(masks * sizeof(uint64_t)), .size=masks };
+    clear_bitset_(&bset);
+    return  bset;
+}
 /*-PERFECT-HASHING-ALGORITHM------------------------------------------------------------------------------------------*/
 
 /**
@@ -278,6 +278,7 @@ trial_end:
 
 static      atomic_bool         terminate   =   false;                          // threaded termination flag
 static      uint64_t            offset_t    =   0x0;                            // final offset
+static      uint64_t            seed_t      =   0x0;                            // final seed
 
 typedef struct {                                                                // multithreaded trial data
     const   str_map            *map;
@@ -351,6 +352,7 @@ typedef struct {                                                                
     if (!atomic_exchange_explicit(&terminate, true, memory_order_relaxed)) {
         // NOTE : modify offset_t if not terminating here
         offset_t    =   offset;
+        seed_t      =   seed;
         out_str     =   "success";
     }
 
@@ -428,8 +430,7 @@ static hash_fn alg_orch_( const hash_grp *const group,
     free(data);
     free(threads);
     fputc('\n', stdout);
-    return  (hash_fn){ .offset=offset_t, .buckets=buckets };
-}
+    return  (hash_fn){ .offset=offset_t, .buckets=buckets, .seed=seed_t };}
 
 #endif  /* NTHREAD */
 
@@ -471,6 +472,6 @@ static hash_fn alg_orch_( const hash_grp *const group,
     // end
     free_str_map_(&map);
     fputc('\n', stdout);
-    return  (hash_fn){ .offset=offs, .buckets=buckets };
+    return  (hash_fn){ .offset=offs, .buckets=buckets, .seed=seed - 1 };
 #endif  /* NTHREAD */
 }

@@ -1,6 +1,6 @@
 /**
  * examples/tokens_hashtable.h
- * AUTO-GENERATED - DO NOT MANUALLY MODIFY; see README.md for usage.
+ * AUTO-GENERATED (seed 1) - DO NOT MANUALLY MODIFY; see perfhash/README.md for usage.
  */
 
 #ifndef STR_HASH_TABLE_
@@ -22,7 +22,7 @@ constexpr   size_t      STR_MAX_STR         =   9;                              
 
 /*-STR-HASH-TABLE-----------------------------------------------------------------------------------------------------*/
 
-const   hash_entry  str_table[STR_TBL_S]    =   {                               // str hash table
+static  const   hash_entry  str_table[STR_TBL_S]    =   {                       // str hash table
     [ 83]   =   { 0x6ef5ccaafcce0a53, "if",        2, { .tok=tok_if,     .grp=tok_kwrd_t  } },
     [375]   =   { 0xfbd4cda70addb577, "elseif",    6, { .tok=tok_elsif,  .grp=tok_kwrd_t  } },
     [483]   =   { 0xc632d698cdbb59e3, "else",      4, { .tok=tok_else,   .grp=tok_kwrd_t  } },

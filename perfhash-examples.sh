@@ -16,7 +16,10 @@ trap cleanup EXIT INT TERM;
 debug_build=0;
 profile=0;
 nthread=0
-while getopts ":dpn" opt ; do
+cache_line=0;
+cache_line_def=0;
+compiler="cc";
+while getopts ":dpnc:l:" opt ; do
     case $opt in
         d)
             debug_build=1;
@@ -27,8 +30,23 @@ while getopts ":dpn" opt ; do
         n)
             nthread=1;
             ;;
+        c)
+            compiler="$OPTARG";
+            ;;
+        l)
+            cache_line_def=1;
+            cache_line="$OPTARG";
+            ;;
+        h)
+            printf "%b\n" "-d for debugging\n"
+                          "-p to profile\n"
+                          "-n to disable multithreading\n"
+                          "-c [compiler] to specify a c compiler\n"
+                          "-l [line size] to specify cache line size";
+            exit 0;
+            ;;
         \?)
-            printf "perfhash unknown build flag\n";
+            printf "%b\n" "perfhash unknown build flag";
             exit 1;
             ;;
     esac
@@ -48,7 +66,6 @@ flags=(
 # flag processing
 cc="cc";
 if (( debug_build )) ; then
-    cc="/opt/homebrew/opt/llvm/bin/clang";
     flags+=(
         -Og
         -g
@@ -72,6 +89,17 @@ if (( !nthread )) ; then
     flags+=( -pthread );
 else
     flags+=( -DNTHREAD );
+fi
+
+if (( cache_line_def )) ; then
+    # cache line size
+    flags+=( -DCACHE_LINE_SIZE=$cache_line );
+fi
+
+# check compiler
+if ! command -v "$compiler" >/dev/null 2>&1 ; then
+    printf "%b\n" "c compiler $compiler not found";
+    exit 1;
 fi
 
 # compilation

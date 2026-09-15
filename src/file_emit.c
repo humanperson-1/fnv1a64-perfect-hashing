@@ -201,7 +201,9 @@ void hash_full( const hash_itm *const itm_arr,
 
     // header
     fprintf(fp, "/**\n * %s\n", file);
-    fprintf(fp, " * AUTO-GENERATED - DO NOT MANUALLY MODIFY; see README.md for usage.\n */\n\n");
+    fprintf( fp,
+             " * AUTO-GENERATED (seed %" PRIu64 ") - DO NOT MANUALLY MODIFY; "
+             "see perfhash/README.md for usage.\n */\n\n", fn.seed             );
     fprintf(fp, "#ifndef %s_HASH_TABLE_\n", name_upper);
     fprintf(fp, "#define %s_HASH_TABLE_\n\n", name_upper);
 
@@ -282,7 +284,7 @@ void hash_full( const hash_itm *const itm_arr,
     fprintf(fp, "*/\n\n");
 
     // table definition print
-    int     num_prnt    =   fprintf_len_(fp, "const   hash_entry  %s_table[%s_TBL_S] ", name, name_upper);
+    int     num_prnt    =   fprintf_len_(fp, "static  const   hash_entry  %s_table[%s_TBL_S] ", name, name_upper);
     while (num_prnt++ % TABSTOP) {
         fputc(' ', fp);
     }
