@@ -22,8 +22,8 @@ typedef struct {                                                                
 } hash_itm;
 
 typedef struct {                                                                // token item
-    const   int                 tok;
-    const   int                 grp;
+            int                 tok;
+            int                 grp;
 } tok_itm;
 
 typedef struct {                                                                // hashmap entry

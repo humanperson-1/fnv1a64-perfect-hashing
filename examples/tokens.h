@@ -151,8 +151,8 @@ typedef enum {                                                                  
 } tok_str_tok;
 
 typedef struct {                                                                // string token struct
-    const   tok_str_t       type;
-    const   tok_str_tok     tok;
+            tok_str_t       type;
+            tok_str_tok     tok;
 } tok_str;
 
 static  const   hash_itm    str_itms_[]     =   {                               // string hash group
