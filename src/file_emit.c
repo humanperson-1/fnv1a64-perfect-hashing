@@ -187,7 +187,7 @@ void hash_full( const hash_itm *const itm_arr,
         if ((int)strlen(group.arr[i]->tok_str) > (int)tok_max)  tok_max =   (int)strlen(group.arr[i]->tok_str);
         if ((int)strlen(group.arr[i]->grp_str) > (int)grp_max)  grp_max =   (int)strlen(group.arr[i]->grp_str);
     }
-    const   int     max_bck =   fprintf_len_(nullptr, "%d", fn.buckets);
+    const   int     max_bck =   fprintf_len_(nullptr, "%zu", fn.buckets);
 
     // open file
     FILE    *const  fp  =   fopen(file, "w");
