@@ -65,7 +65,7 @@ command if this is missing) I'm not too sure what version of bash you need, but 
 Run
 
 ```bash
-git clone https://github.com/realperson-1/perfhash-fnv1a.git
+git clone https://github.com/humanperson-1/perfhash-fnv1a.git
 cd perfhash-fnv1a
 ./perfhash-examples.sh
 ```
@@ -80,4 +80,4 @@ arguments in the example shell script.
 
 ## **License**
 This repository is under the [MIT License](https://opensource.org/license/mit). See
-[LICENSE](https://github.com/realperson-1/fnv1a64-perfect-hashing/blob/main/LICENSE) for more information.
+[LICENSE](https://github.com/humanperson-1/fnv1a64-perfect-hashing/blob/main/LICENSE) for more information.
