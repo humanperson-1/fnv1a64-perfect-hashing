@@ -80,4 +80,4 @@ arguments in the example shell script.
 
 ## **License**
 This repository is under the [MIT License](https://opensource.org/license/mit). See
-[LICENSE](https://github.com/realperson-1/perfhash-fnv1a/blob/main/LICENSE) for more information.
+[LICENSE](https://github.com/realperson-1/fnv1a64-perfect-hashing/blob/main/LICENSE) for more information.
