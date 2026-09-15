@@ -64,8 +64,9 @@ static void emit_case_variants_( const hash_itm *const itm,
         else                                    continue;
 
         // modify string
-        char        *const  str_c   =   s_malloc((strlen(itm->str) + 1) * sizeof(char));
-        strcpy(str_c, itm->str);
+        const   size_t      mcpy_s  =   strlen(itm->str) + 1;
+        char        *const  str_c   =   s_malloc(mcpy_s * sizeof(char));
+        memcpy(str_c, itm->str, mcpy_s);
         str_c[str_idx]              +=  adj;
 
         // copy itm and assign string
@@ -87,6 +88,7 @@ static void dup_chck_(const hash_grp *const grp) {                              
         for (size_t j = 0; j < grp->len; ++j) {
             if (j == i)                                         continue;
             if (strcmp(grp->arr[i]->str, grp->arr[j]->str))     continue;
+            // duplicate keys
             fprintf(stderr, "duplicate key for %s, %s\n", grp->arr[i]->tok_str, grp->arr[j]->tok_str);
             exit(1);
         }
@@ -111,14 +113,9 @@ static void dup_chck_(const hash_grp *const grp) {                              
     for (size_t i = 0; i < size; ++i) {
         const   hash_itm    *const  itm_c   =   cp_hash_itm_(itm_arr + i);
 
-        // case dependent
-        if (!itm_arr[i].no_case) {
-            push_itm_(&group, itm_c);
-            continue;
-        }
-
-        // case independent
-        emit_case_variants_(itm_c, 0, &group);
+        // case variation
+        if   (itm_arr[i].no_case)       emit_case_variants_(itm_c, 0, &group);
+        else                            push_itm_(&group, itm_c);
     }
     dup_chck_(&group);
     return  group;

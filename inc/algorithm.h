@@ -14,6 +14,8 @@
 /*-CONSTANTS----------------------------------------------------------------------------------------------------------*/
 
 constexpr   uint64_t    FNV_PRIME_64        =   0x00000100000001b3;             // fnv-1a 64-bit prime
+constexpr   size_t      bset_s              =   64;                             // bitset size
+constexpr   size_t      bset_s_shft         =   6;                              // 1 << ? for bitset size
 
 /*-PERFECT-HASH-CONSTRUCTION-OBJECT-----------------------------------------------------------------------------------*/
 

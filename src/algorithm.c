@@ -50,7 +50,7 @@
     // make strings
     size_t      str_idx =   0;
     size_t      cap     =   1;
-    char       *strs    =   s_malloc(cap * sizeof(char));
+    char       *strs=   s_malloc(cap * sizeof(char));
     for (size_t i = 0; i < group->len; ++i) {
         const   char   *str =   group->arr[i]->str;
 
@@ -59,13 +59,13 @@
                 cap     *=  2;
                 strs    =   s_realloc(strs, cap * sizeof(char));
             }
-            *(strs + str_idx++)     =   *(str++);
+            strs[str_idx++] =   *(str++);
         }
         if (str_idx >= cap) {
             cap     *=  2;
             strs    =   s_realloc(strs, cap * sizeof(char));
         }
-        *(strs + str_idx++)     =   '\0';
+        strs[str_idx++]     =   '\0';
     }
     map.strs    =   strs;
     return  map;
@@ -83,17 +83,17 @@ static void free_str_map_(str_map *const map) {                                 
 /*-BITSET-FUNCTIONS---------------------------------------------------------------------------------------------------*/
 
 /**
- * Bitset bit set.
+ * Bitset bit set, and check if the given index was set.
  *
  * @param       set             bitset
  * @param       n               bit to set
  * @return                      whether the bit was not set
  */
 [[nodiscard]] static bool set_bitset_(       bitset   *const restrict set,
-                                       const unsigned                 n) {      // set bitset
+                                       const unsigned                 n    ) {  // set bitset
     // find mask item
-    const   size_t      mask_idx    =   n >> 6;
-    const   uint64_t    shft        =   (uint64_t)1 << (n & 63);
+    const   size_t      mask_idx    =   n >> bset_s_shft;
+    const   uint64_t    shft        =   (uint64_t)1 << (n & (bset_s - 1));
     const   bool        is_set      =   set->mask[mask_idx] & shft;
     set->mask[mask_idx]             |=  shft;
     return  !is_set;
@@ -105,7 +105,7 @@ static void free_str_map_(str_map *const map) {                                 
  * @param       set             bitset
  */
 static void clear_bitset_(bitset *const restrict set) {   // clear bitset
-    memset(set->mask, 0, sizeof(uint64_t) * set->size);
+    memset(set->mask, 0, set->size * sizeof(uint64_t));
 }
 
 /**
@@ -115,12 +115,21 @@ static void clear_bitset_(bitset *const restrict set) {   // clear bitset
  * @return                      bitset
  */
 [[nodiscard]] static bitset new_bitset_(const size_t n) {                       // create bitset
-    size_t  masks   =   0;
-    for (int i = (int)n; i > 0; i -= 64, ++masks);
+    const   size_t  masks   =   (n + (bset_s - 1)) >> bset_s_shft;
     bitset  bset    =   (bitset){ .mask=s_aln_alloc(masks * sizeof(uint64_t)), .size=masks };
     clear_bitset_(&bset);
     return  bset;
 }
+
+/**
+ * Bitset freeing.
+ *
+ * @param       set             bitset to free
+ */
+static void free_bitset_(bitset *const restrict set) {                          // bitset free
+    free(set->mask);
+}
+
 /*-PERFECT-HASHING-ALGORITHM------------------------------------------------------------------------------------------*/
 
 /**
@@ -172,9 +181,7 @@ static void clear_bitset_(bitset *const restrict set) {   // clear bitset
                                           const size_t buckets,
                                           const size_t attempts ) {             // perfect hash probability
     double  single_p    =   1.0;
-    for (size_t k = 0; k < n; ++k) {
-        single_p        *=  1.0 - ((double)k / (double)buckets);
-    }
+    for (size_t k = 0; k < n; ++k)  single_p    *=  1.0 - ((double)k / (double)buckets);
     
     return  1.0 - pow(1.0 - single_p, (double)attempts);
 }
@@ -211,72 +218,11 @@ static void trial_header_prnt_( const uint64_t offset,
     if (flush)      fflush(stdout);
 }
 
-/*-PERFECT-HASHING-ALGORITHM-TRIAL-(SINGLE-THREADED)------------------------------------------------------------------*/
-
-static      bool                nt_term     =   false;                          // non-threaded termination flag
-
-/**
- * Single perfect hashing trial to a maximum attempt.
- *
- * @param       map             string map
- * @param       seed            initial random seed
- * @param       max_attempt     maximum attempts
- * @param       buckets         buckets
- * @return                      successful offset or zero on fail
- */
-[[maybe_unused]] [[nodiscard]]
-static uint64_t trial_( const str_map  map,
-                        const uint64_t seed,
-                        const size_t   max_attempt,
-                        const size_t   buckets      ) {                         // single trial instance
-    // random seeding
-    uint64_t                    prng_st =   seed;
-    uint64_t                    offset  =   rand64_(&prng_st);
-
-    // pointer setup
-    size_t                      attempt =   0;
-    const   char    *restrict   str_ptr =   map.strs;
-
-    // biset setup
-    bitset                      set     =   new_bitset_(buckets);
-
-    // hash search
-    bool                        found   =   true;
-    trial_header_prnt_(offset, attempt, max_attempt, true);
-    for (size_t i = 0; i < map.size; ++i) {
-
-        // hash and bucket
-        const   uint64_t    hash    =   hash_fn_fast_(&str_ptr, offset);
-        if (set_bitset_(&set, (size_t)hash & (buckets - 1)))    continue;
-
-        // reset
-        offset      =   rand64_(&prng_st);
-        i           =   (size_t)-1;
-        str_ptr     =   map.strs;
-        clear_bitset_(&set);
-
-        // attempt check
-        if (!(attempt & 0xffff))                                trial_header_prnt_(offset, attempt, max_attempt, true);
-        if (++attempt >= max_attempt) {
-            found   =   false;
-            goto    trial_end;
-        }
-    }
-
-trial_end:
-    // end
-    trial_header_prnt_(offset, attempt, max_attempt, false);
-    printf(" [ %s on %" PRIu64 " ]\n", (found) ? "success" : "fail", seed);
-    if (found)          nt_term =   true;
-    free(set.mask);
-    return  (found) ? offset : 0;
-}
+#ifndef NTHREAD
 
 /*-PERFECT-HASHING-ALGORITHM-THREAD-HANDLER---------------------------------------------------------------------------*/
 
-#ifndef NTHREAD
-
-static      atomic_bool         terminate   =   false;                          // threaded termination flag
+static      atomic_bool         terminate;                                      // threaded termination flag
 static      uint64_t            offset_t    =   0x0;                            // final offset
 static      uint64_t            seed_t      =   0x0;                            // final seed
 
@@ -348,9 +294,8 @@ typedef struct {                                                                
         }
     }
 
-    // store check
     if (!atomic_exchange_explicit(&terminate, true, memory_order_relaxed)) {
-        // NOTE : modify offset_t if not terminating here
+        // store check
         offset_t    =   offset;
         seed_t      =   seed;
         out_str     =   "success";
@@ -358,7 +303,7 @@ typedef struct {                                                                
 
 thread_terminate:
     // end trial
-    free(set.mask);
+    free_bitset_(&set);
     flockfile(stdout);
     trial_header_prnt_(offset, attempt, max, false);
     printf(" [ %s on %" PRIu64 " ]\n", out_str, seed);
@@ -382,7 +327,7 @@ static hash_fn alg_orch_( const hash_grp *const group,
     // general init
     const   size_t      buckets =   group->size << offset;
     const   long        online  =   sysconf(_SC_NPROCESSORS_ONLN);
-    const   unsigned    thrd_n  =   (online > 0) ? (unsigned)online : 1u;
+    const   unsigned    thrd_n  =   (online > 0) ? (unsigned)online : 1;
 
     // string map init
     str_map             map     =   str_map_make_(group);
@@ -420,17 +365,78 @@ static hash_fn alg_orch_( const hash_grp *const group,
     trial_multi_(&data[0]);
 
     // terminate
-    for (unsigned i = 1; i < thrd_n; ++i) {
-        if (live[i])                            pthread_join(threads[i], nullptr);
-    }
+    for (unsigned i = 1; i < thrd_n; ++i)   if (live[i])    pthread_join(threads[i], nullptr);
     free(live);
 
     // end
     free_str_map_(&map);
     free(data);
     free(threads);
-    fputc('\n', stdout);
-    return  (hash_fn){ .offset=offset_t, .buckets=buckets, .seed=seed_t };}
+    return  (hash_fn){ .offset=offset_t, .buckets=buckets, .seed=seed_t };
+}
+
+#else   /* NTHREAD */
+
+/*-PERFECT-HASHING-ALGORITHM-TRIAL-(SINGLE-THREADED)------------------------------------------------------------------*/
+
+static      bool                nt_term     =   false;                          // non-threaded termination flag
+
+/**
+ * Single perfect hashing trial to a maximum attempt.
+ *
+ * @param       map             string map
+ * @param       seed            initial random seed
+ * @param       max_attempt     maximum attempts
+ * @param       buckets         buckets
+ * @return                      successful offset or zero on fail
+ */
+[[maybe_unused]] [[nodiscard]]
+static uint64_t trial_( const str_map  map,
+                        const uint64_t seed,
+                        const size_t   max_attempt,
+                        const size_t   buckets      ) {                         // single trial instance
+    // random seeding
+    uint64_t                    prng_st =   seed;
+    uint64_t                    offset  =   rand64_(&prng_st);
+
+    // pointer setup
+    size_t                      attempt =   0;
+    const   char    *restrict   str_ptr =   map.strs;
+
+    // biset setup
+    bitset                      set     =   new_bitset_(buckets);
+
+    // hash search
+    bool                        found   =   true;
+    trial_header_prnt_(offset, attempt, max_attempt, true);
+    for (size_t i = 0; i < map.size; ++i) {
+
+        // hash and bucket
+        const   uint64_t    hash    =   hash_fn_fast_(&str_ptr, offset);
+        if (set_bitset_(&set, (size_t)hash & (buckets - 1)))    continue;
+
+        // reset
+        offset      =   rand64_(&prng_st);
+        i           =   (size_t)-1;
+        str_ptr     =   map.strs;
+        clear_bitset_(&set);
+
+        // attempt check
+        if (!(attempt & 0xffff))                                trial_header_prnt_(offset, attempt, max_attempt, true);
+        if (++attempt >= max_attempt) {
+            found   =   false;
+            goto    trial_end;
+        }
+    }
+
+trial_end:
+    // end
+    trial_header_prnt_(offset, attempt, max_attempt, false);
+    printf(" [ %s on %" PRIu64 " ]\n", (found) ? "success" : "fail", seed);
+    if (found)          nt_term =   true;
+    free_bitset_(&set);
+    return  (found) ? offset : 0;
+}
 
 #endif  /* NTHREAD */
 
@@ -450,13 +456,13 @@ static hash_fn alg_orch_( const hash_grp *const group,
                                        size_t          offset       ) {         // perfect hash algorithm
     // offset check
     if (offset >= 64) {
-        fprintf(stderr, "OOB offset\n");
+        fputs("OOB offset\n", stderr);
         exit(1);
     }
 
 #ifndef NTHREAD
     return  alg_orch_(group, seed, max_attempt, offset);
-#else
+#else   /* NTHREAD */
     // general init
     nt_term             =   false;
     size_t      buckets =   group->size << offset;
@@ -471,7 +477,6 @@ static hash_fn alg_orch_( const hash_grp *const group,
 
     // end
     free_str_map_(&map);
-    fputc('\n', stdout);
     return  (hash_fn){ .offset=offs, .buckets=buckets, .seed=seed - 1 };
 #endif  /* NTHREAD */
 }

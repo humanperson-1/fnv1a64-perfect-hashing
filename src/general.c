@@ -22,7 +22,7 @@
     errno           =   0;
     void    *ret    =   malloc(size);
     if (ret == nullptr) {
-        fprintf(stderr, "OOM [ errno %d ]\n", errno);
+        fprintf(stderr, "OOM [ size %zu - errno %d ]\n", size, errno);
         exit(1);
     }
     return  ret;
@@ -39,7 +39,7 @@
     errno           =   0;
     void    *ret    =   (void*)calloc(n, size);
     if (ret == nullptr) {
-        fprintf(stderr, "OOM [ errno %d ]\n", errno);
+        fprintf(stderr, "OOM [ size %zu - errno %d ]\n", size, errno);
         exit(1);
     }
     return  ret;
@@ -56,7 +56,7 @@
     errno           =   0;
     void    *ret    =   realloc(ptr, size);
     if (ret == nullptr) {
-        fprintf(stderr, "OOM [ errno %d ]\n", errno);
+        fprintf(stderr, "OOM [ size %zu - errno %d ]\n", size, errno);
         exit(1);
     }
     return  ret;
@@ -66,7 +66,6 @@
  * aligned allocation wrapper to report OOM errors.
  *
  * @param       size            alloc size
- * @param       itm             item description
  * @return                      allocated memory pointer
  */
 [[nodiscard]] void *s_aln_alloc(const size_t size) {                            // safe aligned alloc
@@ -76,12 +75,12 @@
     void    *const  ret     =   aligned_alloc(CACHE_LN_S, pad);
     if (ret == nullptr) {
         // alloc failure
-        fprintf(stderr, "OOM [ errno %d ]\n", errno);
+        fprintf(stderr, "OOM [ size %zu - errno %d ]\n", size, errno);
         exit(1);
     }
     return  ret;
 #else
-    // IMPORTANT : If this is actually critical, don't just fallback to chckd_malloc.
+    // theoretically, this is only used for alignment while multithreading, so this fallback is fine
     return  s_malloc(size);
 #endif  /* NTHREAD */
 }

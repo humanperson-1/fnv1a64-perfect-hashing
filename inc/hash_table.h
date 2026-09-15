@@ -17,7 +17,6 @@ constexpr   uint64_t    FNV_PRIME_64_HT     =   0x00000100000001b3;             
 
 typedef struct {                                                                // perfect hash group
     const   char               *str;
-    const   int                 tok,                grp;
     const   char        *const  tok_str,    *const  grp_str;
     const   bool                no_case;
 } hash_itm;

@@ -103,7 +103,7 @@ if ! command -v "$compiler" >/dev/null 2>&1 ; then
 fi
 
 # compilation
-$cc ${flags[@]} -Iinc -Iexamples src/*.c examples/tokens.c -o "perfhash.out";
+$cc ${flags[@]} -Iinc -Iexamples src/*.c examples/token_creation_script.c -o "perfhash.out";
 
 # run
 if (( profile )) ; then

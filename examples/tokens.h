@@ -157,12 +157,12 @@ typedef struct {                                                                
 
 static  const   hash_itm    str_itms_[]     =   {                               // string hash group
 #define Y( macro, _enum_t )     macro
-#define X( strx, tokx, grpx )   { .str=strx, .tok=tokx, .grp=grpx, .tok_str=#tokx, .grp_str=#grpx, .no_case=false },
+#define X( strx, tokx, grpx )   { .str=strx, .tok_str=#tokx, .grp_str=#grpx, .no_case=false },
     TOK_STRC_T
 #undef  X
 #undef  Y
 #define Y( macro, _enum_t )     macro
-#define X( strx, tokx, grpx )   { .str=strx, .tok=tokx, .grp=grpx, .tok_str=#tokx, .grp_str=#grpx, .no_case=true },
+#define X( strx, tokx, grpx )   { .str=strx, .tok_str=#tokx, .grp_str=#grpx, .no_case=true },
     TOK_STRN_T
 #undef  X
 #undef  Y

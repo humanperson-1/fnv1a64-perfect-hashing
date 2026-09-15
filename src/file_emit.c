@@ -30,9 +30,7 @@
     char    *const  res     =   s_malloc(strlen(str) + 1);
     strcpy(res, str);
     char           *ptr     =   res;
-    for (; *ptr != '\0'; ++ptr) {
-        if ('a' <= *ptr && *ptr <= 'z')     *ptr    +=  'A' - 'a';
-    }
+    for (; *ptr != '\0'; ++ptr)     if ('a' <= *ptr && *ptr <= 'z')     *ptr    +=  'A' - 'a';
     return  res;
 }
 
@@ -190,7 +188,7 @@ void hash_full( const hash_itm *const itm_arr,
     const   int     max_bck =   fprintf_len_(nullptr, "%zu", fn.buckets);
 
     // open file
-    FILE    *const  fp  =   fopen(file, "w");
+    FILE    *const  fp  =   fopen(file, "wb");
     if (fp == nullptr) {
         fprintf(stderr, "couldn't open file %s\n", file);
         exit(1);
@@ -408,6 +406,7 @@ void hash_full( const hash_itm *const itm_arr,
     fprintf(fp, "#endif  /* %s_HASH_TABLE_ */\n", name_upper);
 
     // free items
+    printf("emitted table to %s\n", file);
     free_hash_grp(&group);
     free(name_upper);
 }
