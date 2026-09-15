@@ -1,5 +1,5 @@
 /**
- * examples/tokens.c
+ * examples/tokens_creation_script.c
  * Example tokenizer hashing call - output at examples/tokens_hashtable.h
  */
 
