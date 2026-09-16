@@ -407,7 +407,7 @@ void hash_full( const hash_itm *const itm_arr,
                 "    // generate hash and lookup\n"
                 "    return  %s_hash_lu_h(str, n, %s_hash_fn(str, n));\n"
                 "}\n\n",
-                name_upper, ret_pad - (int)strlen(name_upper), "", name, name       );
+                name_upper, ret_pad - (int)strlen(name_upper), "", name, name         );
 
     // end
     fprintf(fp, "#endif  /* %s_HASH_TABLE_ */\n", name_upper);
