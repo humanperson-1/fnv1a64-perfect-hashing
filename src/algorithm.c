@@ -50,7 +50,7 @@
     // make strings
     size_t      str_idx =   0;
     size_t      cap     =   1;
-    char       *strs=   s_malloc(cap * sizeof(char));
+    char       *strs    =   s_malloc(cap * sizeof(char));
     for (size_t i = 0; i < group->len; ++i) {
         const   char   *str =   group->arr[i]->str;
 
