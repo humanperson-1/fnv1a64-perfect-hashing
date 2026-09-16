@@ -7,8 +7,8 @@
 #define STR_HASH_TABLE_
 
 #include    <stddef.h>
-#include    <string.h>
 #include    <stdint.h>
+#include    <string.h>
 
 #include    "hash_table.h"
 #include    "tokens.h"
@@ -173,8 +173,6 @@ static  const   hash_entry  str_table[STR_TBL_S]    =   {                       
     [241]   =   { 0x6f43f7aafd3dc6f1, "pc",        2, { .tok=tok_pc,     .grp=tok_ban_t   } }
 };
 
-// str hash table lookup
-
 /*-STR-HASH-FUNCTION--------------------------------------------------------------------------------------------------*/
 
 /**
@@ -200,15 +198,18 @@ static  const   hash_entry  str_table[STR_TBL_S]    =   {                       
  * (tok_itm){ .tok=0, .grp=0 } on lookup failure.
  *
  * @param       str             lookup string
+ * @param       n               character number
  * @param       hash            string hash
  * @return                      table entry
  */
 [[nodiscard]] static tok_itm str_hash_lu_h( const char     *const str,
+                                            const size_t          n,
                                             const uint64_t        hash ) {      // str hash table lookup (w/ hash)
     // get table entry
     const   hash_entry  table_entry =   str_table[hash & (STR_TBL_S - 1)];
 
     // check entry
+    if (n != table_entry.len)                           return  (tok_itm){ .tok=0, .grp=0 };
     if (hash != table_entry.hash)                       return  (tok_itm){ .tok=0, .grp=0 };
     if (memcmp(str, table_entry.str, table_entry.len))  return  (tok_itm){ .tok=0, .grp=0 };
 
@@ -226,8 +227,11 @@ static  const   hash_entry  str_table[STR_TBL_S]    =   {                       
  */
 [[maybe_unused]] [[nodiscard]]
 static tok_itm str_hash_lu(const char *const str, const size_t n) {             // str hash table lookup
+    // avoid unecessary hashing
+    if (n > STR_MAX_STR)            return  (tok_itm){ .tok=0, .grp=0 };
+
     // generate hash and lookup
-    return  str_hash_lu_h(str, str_hash_fn(str, n));
+    return  str_hash_lu_h(str, n, str_hash_fn(str, n));
 }
 
 #endif  /* STR_HASH_TABLE_ */

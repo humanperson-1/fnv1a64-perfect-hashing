@@ -208,8 +208,8 @@ void hash_full( const hash_itm *const itm_arr,
 
     // inclusions
     fputs("#include    <stddef.h>\n", fp);
-    fputs("#include    <string.h>\n", fp);
-    fputs("#include    <stdint.h>\n\n", fp);
+    fputs("#include    <stdint.h>\n", fp);
+    fputs("#include    <string.h>\n\n", fp);
     fputs("#include    \"" HASH_TABLE_LOC "\"\n", fp);
     fprintf(fp, "#include    \"%s\"\n\n", inc);
 
@@ -320,7 +320,6 @@ void hash_full( const hash_itm *const itm_arr,
         fprintf(fp, " } }%s\n", (i != group.len - 1) ? "," : "");
     }
     fputs("};\n\n", fp);
-    fprintf(fp, "// %s hash table lookup\n\n", name);
 
     // hash function
     fprintf_repeat_(fp, '-', LINE_MAX - 2 - fprintf_len_(fp, "/*-%s-HASH-FUNCTION", name_upper));
@@ -333,7 +332,7 @@ void hash_full( const hash_itm *const itm_arr,
                 " * @param       n               character number\n"
                 " * @return                      hash\n"
                 " */\n",
-                name                                                               );
+                name                                                                                        );
 
     fprintf_repeat_( fp, ' ',
                      CMT_ALN -
@@ -347,7 +346,7 @@ void hash_full( const hash_itm *const itm_arr,
                 "    }\n"
                 "    return  hash ^ (hash >> 32);\n"
                 "}\n\n",
-                name_upper                                                                    );
+                name_upper                                       );
 
     // hash table lookup functions
     fprintf_repeat_(fp, '-', LINE_MAX - 2 - fprintf_len_(fp, "/*-%s-HASH-TABLE-LOOKUP-FUNCTION", name_upper));
@@ -359,6 +358,7 @@ void hash_full( const hash_itm *const itm_arr,
                 " * (tok_itm){ .tok=0, .grp=0 } on lookup failure.\n"
                 " *\n"
                 " * @param       str             lookup string\n"
+                " * @param       n               character number\n"
                 " * @param       hash            string hash\n"
                 " * @return                      table entry\n"
                 " */\n",
@@ -367,6 +367,8 @@ void hash_full( const hash_itm *const itm_arr,
     const   int to_paren    =   fprintf_len_(fp, "[[nodiscard]] static tok_itm %s_hash_lu_h(", name);
     fprintf(fp, " const char     *const str,\n");
     fprintf_repeat_(fp, ' ', to_paren);
+    fprintf(fp, " const size_t          n,\n");
+    fprintf_repeat_(fp, ' ', to_paren);
     int         to_cmt      =   CMT_ALN - to_paren;
     fprintf_repeat_(fp, ' ', to_cmt - fprintf_len_(fp, " const uint64_t        hash ) {"));
     fprintf(fp, "// %s hash table lookup (w/ hash)\n", name);
@@ -374,6 +376,7 @@ void hash_full( const hash_itm *const itm_arr,
     fprintf(fp, "    // get table entry\n"
                 "    const   hash_entry  table_entry =   %s_table[hash & (%s_TBL_S - 1)];\n\n"
                 "    // check entry\n"
+                "    if (n != table_entry.len)                           return  (tok_itm){ .tok=0, .grp=0 };\n"
                 "    if (hash != table_entry.hash)                       return  (tok_itm){ .tok=0, .grp=0 };\n"
                 "    if (memcmp(str, table_entry.str, table_entry.len))  return  (tok_itm){ .tok=0, .grp=0 };\n\n"
                 "    // return matched item\n"
@@ -398,10 +401,13 @@ void hash_full( const hash_itm *const itm_arr,
                                       name                                                                  ) );
     fprintf(fp, "// %s hash table lookup\n", name);
 
-    fprintf(fp, "    // generate hash and lookup\n"
-                "    return  %s_hash_lu_h(str, %s_hash_fn(str, n));\n"
+    constexpr   int ret_pad =   14;
+    fprintf(fp, "    // avoid unecessary hashing\n"
+                "    if (n > %s_MAX_STR) %*sreturn  (tok_itm){ .tok=0, .grp=0 };\n\n"
+                "    // generate hash and lookup\n"
+                "    return  %s_hash_lu_h(str, n, %s_hash_fn(str, n));\n"
                 "}\n\n",
-                name, name                                           );
+                name_upper, ret_pad - (int)strlen(name_upper), "", name, name       );
 
     // end
     fprintf(fp, "#endif  /* %s_HASH_TABLE_ */\n", name_upper);
